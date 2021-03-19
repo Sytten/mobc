@@ -482,6 +482,7 @@ impl<M: Manager> Pool<M> {
     }
 
     async fn strategy_get(&self, strategy: GetStrategy) -> Result<Connection<M>, Error<M::Error>> {
+        println!("hello");
         let mut c = self.inner_strategy_ctx(strategy).await?;
 
         if !c.brand_new {
@@ -507,6 +508,7 @@ impl<M: Manager> Pool<M> {
                         c.raw = Some(raw)
                     }
                     Err(e) => {
+                        println!("Reducing open connection");
                         internals.num_open -= 1;
                         return Err(Error::Inner(e));
                     }
@@ -536,6 +538,7 @@ impl<M: Manager> Pool<M> {
         }
 
         if internals.config.max_open > 0 {
+            println!("Open connection {}", internals.num_open);
             if internals.num_open >= internals.config.max_open {
                 let (req_sender, req_recv) = oneshot::channel();
                 internals.wait_count += 1;
@@ -552,6 +555,7 @@ impl<M: Manager> Pool<M> {
             }
         }
 
+        println!("creating connection");
         log::debug!("get conn with manager create");
         match self.0.manager.connect().await {
             Ok(c) => {
